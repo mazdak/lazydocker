@@ -13,6 +13,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -485,13 +486,14 @@ type AppConfig struct {
 	BuildDate   string `long:"build-date" env:"BUILD_DATE"`
 	Name        string `long:"name" env:"NAME" default:"lazydocker"`
 	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	Runtime     string `long:"runtime" env:"RUNTIME" default:"docker"`
 	UserConfig  *UserConfig
 	ConfigDir   string
 	ProjectDir  string
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, composeFiles []string, projectDir string) (*AppConfig, error) {
+func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, composeFiles []string, projectDir string, runtime string) (*AppConfig, error) {
 	configDir, err := findOrCreateConfigDir(name)
 	if err != nil {
 		return nil, err
@@ -507,6 +509,11 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		userConfig.CommandTemplates.DockerCompose += " -f " + strings.Join(composeFiles, " -f ")
 	}
 
+	// Validate runtime parameter
+	if runtime != "docker" && runtime != "apple" {
+		return nil, fmt.Errorf("unsupported runtime '%s'. Supported runtimes: docker, apple", runtime)
+	}
+
 	appConfig := &AppConfig{
 		Name:        name,
 		Version:     version,
@@ -514,6 +521,7 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		BuildDate:   date,
 		Debug:       debuggingFlag || os.Getenv("DEBUG") == "TRUE",
 		BuildSource: buildSource,
+		Runtime:     runtime,
 		UserConfig:  userConfig,
 		ConfigDir:   configDir,
 		ProjectDir:  projectDir,

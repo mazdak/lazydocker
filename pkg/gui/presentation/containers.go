@@ -14,11 +14,19 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetContainerDisplayStrings(guiConfig *config.GuiConfig, container *commands.Container) []string {
+func GetContainerDisplayStrings(guiConfig *config.GuiConfig, container *commands.Container, runtime string) []string {
+	// Add runtime indicator
+	runtimeIndicator := ""
+	if runtime == "apple" {
+		runtimeIndicator = "🍎 "
+	} else if runtime == "docker" {
+		runtimeIndicator = "🐳 "
+	}
+
 	return []string{
 		getContainerDisplayStatus(guiConfig, container),
 		getContainerDisplaySubstatus(guiConfig, container),
-		container.Name,
+		runtimeIndicator + container.Name,
 		getDisplayCPUPerc(container),
 		utils.ColoredString(displayPorts(container), color.FgYellow),
 		utils.ColoredString(displayContainerImage(container), color.FgMagenta),
